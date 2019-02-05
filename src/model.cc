@@ -26,6 +26,7 @@ Model::Model(
     int32_t seed)
     : hidden_(args->dim),
       output_(wo->size(0)),
+      vecCbos_(args->dim),
       grad_(args->dim),
       rng(seed),
       quant_(false) {
@@ -66,6 +67,18 @@ real Model::binaryLogistic(int32_t target, bool label, real lr) {
   }
 }
 
+real Model::binaryLogisticCbos(int32_t target, bool label, real lr) {
+  real score = sigmoid(wo_->dotRowCbos(hidden_, target, vecCbos_));
+  real alpha = lr * (real(label) - score);
+  grad_.addRow(*wo_, target, alpha);
+  wo_->addRow(hidden_, target, alpha);
+  if (label) {
+    return -log(score);
+  } else {
+    return -log(1.0 - score);
+  }
+}
+
 real Model::binaryLogisticWeight(int32_t target, bool label, real lr, real weight) {
   real score = sigmoid(wo_->dotRowWeight(hidden_, target, weight));
   real alpha = lr * (real(label) - score);
@@ -86,6 +99,19 @@ real Model::negativeSampling(int32_t target, real lr) {
       loss += binaryLogistic(target, true, lr);
     } else {
       loss += binaryLogistic(getNegative(target), false, lr);
+    }
+  }
+  return loss;
+}
+
+real Model::negativeSamplingCbos(int32_t target, real lr) {
+  real loss = 0.0;
+  grad_.zero();
+  for (int32_t n = 0; n <= args_->neg; n++) {
+    if (n == 0) {
+      loss += binaryLogisticCbos(target, true, lr);
+    } else {
+      loss += binaryLogisticCbos(getNegative(target), false, lr);
     }
   }
   return loss;
@@ -180,6 +206,21 @@ void Model::computeHidden(const std::vector<int32_t>& input, Vector& hidden)
       hidden.addRow(*qwi_, *it);
     } else {
       hidden.addRow(*wi_, *it);
+    }
+  }
+  hidden.mul(1.0 / input.size());
+}
+
+void Model::computeHiddenCbos(const std::vector<int32_t>& input, Vector& hidden, Vector& vecCbos)
+    const {
+  assert(hidden.size() == hsz_);
+  hidden.zero();
+  int32_t vc = 0;
+  for (auto it = input.cbegin(); it != input.cend(); ++it) {
+    if (quant_) {
+      hidden.addRow(*qwi_, *it);
+    } else {
+      hidden.addRow(*wi_, *it, vecCbos[vc++]);
     }
   }
   hidden.mul(1.0 / input.size());
@@ -323,6 +364,31 @@ real Model::computeLoss(
   return loss;
 }
 
+real Model::computeLossCbos(
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    real lr) {
+  real loss = 0.0;
+
+  //for (auto it = bosIndexes.cbegin(); it != bosIndexes.cend(); ++it) {
+  if (args_->loss == loss_name::ns) {
+    loss = negativeSamplingCbos(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::hs) {
+    loss = hierarchicalSoftmax(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::softmax) {
+    loss = softmax(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::ova) {
+    loss = oneVsAll(targets, lr);
+  } else {
+    throw std::invalid_argument("Unhandled loss function for this model.");
+  }
+  //}
+
+  //loss /= bosIndexes.size();
+
+  return loss;
+}
+
 real Model::computeLossWeight(
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
@@ -362,6 +428,38 @@ void Model::update(
     assert(targetIndex < osz_);
     loss_ += computeLoss(targets, targetIndex, lr);
   }
+
+  nexamples_ += 1;
+
+  if (args_->model == model_name::sup) {
+    grad_.mul(1.0 / input.size());
+  }
+  for (auto it = input.cbegin(); it != input.cend(); ++it) {
+    wi_->addRow(grad_, *it, 1.0);
+  }
+}
+
+void Model::updateCbos(
+    const std::vector<int32_t>& input,
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    Vector& vecCbos,
+    real lr) {
+  if (input.size() == 0) {
+    return;
+  }
+
+  vecCbos_.zero();
+  for (int64_t j = 0; j < args_->dim; j++) {
+    vecCbos[j] = (int)(vecCbos[j] * 1000.0)/1000.0;
+    vecCbos_[j] = vecCbos[j];
+  }
+
+  computeHidden(input, hidden_);
+
+  assert(vecCbos.size() > 0);
+  //loss_ += computeLoss(targets, targetIndex, lr);
+  loss_ += computeLossCbos(targets, targetIndex, lr);
 
   nexamples_ += 1;
 

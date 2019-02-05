@@ -11,6 +11,8 @@
 #include <exception>
 #include <random>
 #include <stdexcept>
+#include <iostream>
+#include <iomanip>
 
 #include "utils.h"
 #include "vector.h"
@@ -40,9 +42,25 @@ real Matrix::dotRow(const Vector& vec, int64_t i) const {
   real d = 0.0;
   for (int64_t j = 0; j < n_; j++) {
     d += at(i, j) * vec[j];
+    d = (int)(d * 1000000.0)/1000000.0;
   }
   if (std::isnan(d)) {
-    throw std::runtime_error("Encountered NaN.");
+    throw std::runtime_error("Encountered NaN dotrow.");
+  }
+  return d;
+}
+
+real Matrix::dotRowCbos(const Vector& vec, int64_t i, Vector& vecCbos) const {
+  assert(i >= 0);
+  assert(i < m_);
+  assert(vec.size() == n_);
+  real d = 0.0;
+  for (int64_t j = 0; j < n_; j++) {
+    d += at(i, j) * vec[j] * vecCbos[j];
+    d = (int)(d * 1000000.0)/1000000.0;
+  }
+  if (std::isnan(d)) {
+    throw std::runtime_error("Encountered NaN dotrowcbos.");
   }
   return d;
 }
@@ -56,7 +74,7 @@ real Matrix::dotRowWeight(const Vector& vec, int64_t i, real weight) const {
     d += at(i, j) * vec[j] * weight;
   }
   if (std::isnan(d)) {
-    throw std::runtime_error("Encountered NaN.");
+    throw std::runtime_error("Encountered NaN dotrowweight.");
   }
   return d;
 }
@@ -67,6 +85,13 @@ void Matrix::addRow(const Vector& vec, int64_t i, real a) {
   assert(vec.size() == n_);
   for (int64_t j = 0; j < n_; j++) {
     data_[i * n_ + j] += a * vec[j];
+  }
+}
+
+void Matrix::addRowCbos(const Vector& vec, int64_t i, Vector& vecCbos, real a) {
+  assert(vec.size() == n_);
+  for (int64_t j = 0; j < n_; j++) {
+    data_[i * n_ + j] += a * vec[j] * vecCbos[j];
   }
 }
 
@@ -106,7 +131,7 @@ real Matrix::l2NormRow(int64_t i) const {
     norm += at(i, j) * at(i, j);
   }
   if (std::isnan(norm)) {
-    throw std::runtime_error("Encountered NaN.");
+    throw std::runtime_error("Encountered NaN norm.");
   }
   return std::sqrt(norm);
 }

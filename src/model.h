@@ -39,6 +39,7 @@ class Model {
   Vector hidden_;
   Vector output_;
   Vector grad_;
+  Vector vecCbos_;
   int32_t hsz_;
   int32_t osz_;
   real loss_;
@@ -72,8 +73,10 @@ class Model {
       int32_t);
 
   real binaryLogistic(int32_t, bool, real);
+  real binaryLogisticCbos(int32_t, bool, real);
   real binaryLogisticWeight(int32_t, bool, real, real);
   real negativeSampling(int32_t, real);
+  real negativeSamplingCbos(int32_t, real);
   real negativeSamplingWeight(int32_t, real, real);
   real hierarchicalSoftmax(int32_t, real);
   real softmax(int32_t, real);
@@ -109,6 +112,12 @@ class Model {
       const std::vector<int32_t>&,
       int32_t,
       real);
+  void updateCbos(
+      const std::vector<int32_t>&,
+      const std::vector<int32_t>&,
+      int32_t,
+      Vector&,
+      real);
   void updateWeightCbow(
       const std::vector<int32_t>&,
       const std::vector<int32_t>&,
@@ -122,8 +131,10 @@ class Model {
       real,
       real);
   real computeLoss(const std::vector<int32_t>&, int32_t, real);
+  real computeLossCbos(const std::vector<int32_t>&, int32_t, real);
   real computeLossWeight(const std::vector<int32_t>&, int32_t, real, real);
   void computeHidden(const std::vector<int32_t>&, Vector&) const;
+  void computeHiddenCbos(const std::vector<int32_t>&, Vector&, Vector&) const;
   void computeHiddenWeight(const std::vector<int32_t>&, Vector&, std::vector<double>&) const;
   void computeOutputSigmoid(Vector&, Vector&) const;
   void computeOutputSoftmax(Vector&, Vector&) const;

@@ -354,25 +354,25 @@ void FastText::supervised(
 
 void FastText::cbow(Model& model, real lr, const std::vector<int32_t>& line) {
   std::vector<int32_t> bow;
-  std::vector<double> weightvector;
+  //std::vector<double> weightvector;
   std::uniform_int_distribution<> uniform(1, args_->ws);
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     bow.clear();
-    weightvector.clear();
+    //weightvector.clear();
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w + c]);
         bow.insert(bow.end(), ngrams.cbegin(), ngrams.cend());
         
-        double weight = 1 / (1 + exp(-2 * (args_->ws - abs(c))));
+        /*double weight = 1 / (1 + exp(-2 * (args_->ws - abs(c))));
         for (int32_t wv = 0; wv < ngrams.size(); wv++) {
           weightvector.push_back(weight);
-        }
+        }*/
       }
     }
     
-    model.updateWeightCbow(bow, line, w, lr, weightvector);
+    model.update(bow, line, w, lr);
 
     /*Vector vec(args_->dim);
     for (int32_t i = 0; i < dict_->nwords(); i++) {
@@ -388,12 +388,17 @@ void FastText::skipgram(
     real lr,
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
-  std::vector<int32_t> bos;
+  //std::vector<int32_t> bos;
+  //std::vector<int32_t> bosIndexes;
+  //std::vector<std::string> bosWords;
+
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     
-    int32_t boscount = 0;
+    /*int32_t boscount = 0;
     bos.clear();
+    bosIndexes.clear();
+    bosWords.clear();*/
 
     /*std::vector<double> weightvector;
     for (int32_t wv = -boundary; wv <= boundary; wv++) {
@@ -448,8 +453,10 @@ void FastText::skipgram(
 
         //double tanhscore = 0.5 * (tanh(0.01 * ((weight - mean) / stdev)) + 1);
 
-        const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
+        //const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
+        //bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
+        //bosIndexes.push_back(w + c);
+        //bosWords.push_back(dict_->getWord(line[w + c]));
         //boscount++;
         //if (boscount > 1)
           //model.update(bos, line, w + c, lr); //ngramsBos correction
@@ -458,11 +465,25 @@ void FastText::skipgram(
         
         //model.updateWeightSkipgram(ngrams, line, w + c, lr, weight);
         model.update(ngrams, line, w + c, lr);
-
       }
 
-      if (c == boundary)
-        model.update(bos, line, w, lr);
+      /*if (c == boundary && bosWords.size() > 1)
+      {
+        Vector vecCbos(args_->dim);
+        std::string strWords;
+        getSentenceVectorCbos(bosWords, vecCbos);
+
+        //for (auto it = bosWords.cbegin(); it != bosWords.cend(); ++it) {
+        //  strWords += ";#" + *it;
+        //}
+        //dict_->add(strWords);
+        //int32_t cbosID = dict_->getId(strWords);
+
+        //model.update(bos, line, w, lr);
+        model.updateCbos(bos, line, w, vecCbos, lr);
+
+        //dict_->discard(cbosID, 0.0);
+      }*/
     }
   }
 }
@@ -560,6 +581,28 @@ void FastText::getSentenceVector(std::istream& in, fasttext::Vector& svec) {
     if (count > 0) {
       svec.mul(1.0 / count);
     }
+  }
+}
+
+void FastText::getSentenceVectorCbos(std::vector<std::string>& cbosWords, fasttext::Vector& svec) {
+  svec.zero();
+  Vector vec(args_->dim);
+  //std::string sentence;
+  //std::getline(in, sentence);
+  //std::istringstream iss(sentence);
+  //std::string word;
+  int32_t count = 0;
+  for (auto word = cbosWords.cbegin(); word != cbosWords.cend(); ++word) {
+    getWordVector(vec, *word);
+    real norm = vec.norm();
+    if (norm > 0) {
+      vec.mul(1.0 / norm);
+      svec.addVector(vec);
+      count++;
+    }
+  }
+  if (count > 0) {
+    svec.mul(1.0 / count);
   }
 }
 

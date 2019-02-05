@@ -100,6 +100,8 @@ class FastText {
 
   void getSentenceVector(std::istream& in, Vector& vec);
 
+  void getSentenceVectorCbos(std::vector<std::string>& cbosWords, Vector& vec);
+
   void quantize(const Args& qargs);
 
   std::tuple<int64_t, double, double>

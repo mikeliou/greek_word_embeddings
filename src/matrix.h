@@ -62,8 +62,10 @@ class Matrix {
   void zero();
   void uniform(real);
   real dotRow(const Vector&, int64_t) const;
+  real dotRowCbos(const Vector&, int64_t, Vector&) const;
   real dotRowWeight(const Vector&, int64_t, real) const;
   void addRow(const Vector&, int64_t, real);
+  void addRowCbos(const Vector&, int64_t, Vector&, real);
 
   void multiplyRow(const Vector& nums, int64_t ib = 0, int64_t ie = -1);
   void divideRow(const Vector& denoms, int64_t ib = 0, int64_t ie = -1);

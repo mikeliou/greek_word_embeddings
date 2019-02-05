@@ -78,6 +78,13 @@ void Vector::addRow(const Matrix& A, int64_t i, real a) {
   }
 }
 
+void Vector::addRowCbos(const Matrix& A, Vector& vecCbos, real a) {
+  assert(size() == A.size(1));
+  for (int64_t j = 0; j < A.size(1); j++) {
+    data_[j] += a * vecCbos[j];
+  }
+}
+
 void Vector::addRow(const QMatrix& A, int64_t i) {
   assert(i >= 0);
   A.addToVector(*this, i);
