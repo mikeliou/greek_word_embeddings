@@ -372,7 +372,7 @@ void FastText::cbow(Model& model, real lr, const std::vector<int32_t>& line) {
       }
     }
     
-    model.updateWeight(bow, line, w, lr, weightvector);
+    //model.updateWeight(bow, line, w, lr, weightvector);
 
     /*Vector vec(args_->dim);
     for (int32_t i = 0; i < dict_->nwords(); i++) {
