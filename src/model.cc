@@ -185,6 +185,21 @@ void Model::computeHidden(const std::vector<int32_t>& input, Vector& hidden)
   hidden.mul(1.0 / input.size());
 }
 
+void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, std::vector<double>& weightvector)
+    const {
+  assert(hidden.size() == hsz_);
+  hidden.zero();
+  int32_t c = 0;
+  for (auto it = input.cbegin(); it != input.cend(); ++it) {
+    if (quant_) {
+      hidden.addRow(*qwi_, *it);
+    } else {
+      hidden.addRow(*wi_, *it, weightvector[c++]);
+    }
+  }
+  hidden.mul(1.0 / input.size());
+}
+
 bool Model::comparePairs(
     const std::pair<real, int32_t>& l,
     const std::pair<real, int32_t>& r) {
@@ -363,18 +378,19 @@ void Model::updateWeight(
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
     real lr,
-    real weight) {
+    std::vector<double>& weightvector) {
   if (input.size() == 0) {
     return;
   }
-  computeHidden(input, hidden_);
+  //computeHidden(input, hidden_);
+  computeHiddenWeight(input, hidden_, weightvector);
 
   if (targetIndex == kAllLabelsAsTarget) {
-    loss_ += computeLossWeight(targets, -1, lr, weight);
+    loss_ += computeLoss(targets, -1, lr);
   } else {
     assert(targetIndex >= 0);
     assert(targetIndex < osz_);
-    loss_ += computeLossWeight(targets, targetIndex, lr, weight);
+    loss_ += computeLoss(targets, targetIndex, lr);
   }
 
   nexamples_ += 1;
@@ -382,8 +398,10 @@ void Model::updateWeight(
   if (args_->model == model_name::sup) {
     grad_.mul(1.0 / input.size());
   }
+
+  int32_t vc = 0;
   for (auto it = input.cbegin(); it != input.cend(); ++it) {
-    wi_->addRow(grad_, *it, 1.0);
+    wi_->addRow(grad_, *it, weightvector[vc++]);
   }
 }
 

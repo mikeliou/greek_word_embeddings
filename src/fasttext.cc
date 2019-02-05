@@ -354,17 +354,32 @@ void FastText::supervised(
 
 void FastText::cbow(Model& model, real lr, const std::vector<int32_t>& line) {
   std::vector<int32_t> bow;
+  std::vector<double> weightvector;
   std::uniform_int_distribution<> uniform(1, args_->ws);
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     bow.clear();
+    weightvector.clear();
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w + c]);
         bow.insert(bow.end(), ngrams.cbegin(), ngrams.cend());
+        
+        double weight = 1 / (1 + exp(-2 * (args_->ws - abs(c))));
+        for (int32_t wv = 0; wv < ngrams.size(); wv++) {
+          weightvector.push_back(weight);
+        }
       }
     }
-    model.update(bow, line, w, lr);
+    
+    model.updateWeight(bow, line, w, lr, weightvector);
+
+    /*Vector vec(args_->dim);
+    for (int32_t i = 0; i < dict_->nwords(); i++) {
+      std::string word = dict_->getWord(i);
+      getWordVector(vec, word);
+      std::cout << word << " " << vec << std::endl;
+    }*/
   }
 }
 
@@ -422,7 +437,7 @@ void FastText::skipgram(
         double weight = 1 / (1 + exp(-2 * (boundary - abs(c))));
         //double tanhscore = 0.5 * (tanh(0.01 * ((weight - mean) / stdev)) + 1);
         
-        model.updateWeight(ngrams, line, w + c, lr, weight);
+        //model.updateWeight(ngrams, line, w + c, lr, weight);
       }
     }
   }

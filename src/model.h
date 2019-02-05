@@ -114,10 +114,11 @@ class Model {
       const std::vector<int32_t>&,
       int32_t,
       real,
-      real);
+      std::vector<double>&);
   real computeLoss(const std::vector<int32_t>&, int32_t, real);
   real computeLossWeight(const std::vector<int32_t>&, int32_t, real, real);
   void computeHidden(const std::vector<int32_t>&, Vector&) const;
+  void computeHiddenWeight(const std::vector<int32_t>&, Vector&, std::vector<double>&) const;
   void computeOutputSigmoid(Vector&, Vector&) const;
   void computeOutputSoftmax(Vector&, Vector&) const;
   void computeOutputSoftmax();
