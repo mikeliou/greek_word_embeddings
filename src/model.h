@@ -72,7 +72,9 @@ class Model {
       int32_t);
 
   real binaryLogistic(int32_t, bool, real);
+  real binaryLogisticWeight(int32_t, bool, real, real);
   real negativeSampling(int32_t, real);
+  real negativeSamplingWeight(int32_t, real, real);
   real hierarchicalSoftmax(int32_t, real);
   real softmax(int32_t, real);
   real oneVsAll(const std::vector<int32_t>&, real);
@@ -107,7 +109,14 @@ class Model {
       const std::vector<int32_t>&,
       int32_t,
       real);
+  void updateWeight(
+      const std::vector<int32_t>&,
+      const std::vector<int32_t>&,
+      int32_t,
+      real,
+      real);
   real computeLoss(const std::vector<int32_t>&, int32_t, real);
+  real computeLossWeight(const std::vector<int32_t>&, int32_t, real, real);
   void computeHidden(const std::vector<int32_t>&, Vector&) const;
   void computeOutputSigmoid(Vector&, Vector&) const;
   void computeOutputSoftmax(Vector&, Vector&) const;

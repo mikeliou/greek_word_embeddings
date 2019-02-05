@@ -47,6 +47,20 @@ real Matrix::dotRow(const Vector& vec, int64_t i) const {
   return d;
 }
 
+real Matrix::dotRowWeight(const Vector& vec, int64_t i, real weight) const {
+  assert(i >= 0);
+  assert(i < m_);
+  assert(vec.size() == n_);
+  real d = 0.0;
+  for (int64_t j = 0; j < n_; j++) {
+    d += at(i, j) * vec[j] * weight;
+  }
+  if (std::isnan(d)) {
+    throw std::runtime_error("Encountered NaN.");
+  }
+  return d;
+}
+
 void Matrix::addRow(const Vector& vec, int64_t i, real a) {
   assert(i >= 0);
   assert(i < m_);

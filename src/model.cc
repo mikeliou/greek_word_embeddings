@@ -66,6 +66,18 @@ real Model::binaryLogistic(int32_t target, bool label, real lr) {
   }
 }
 
+real Model::binaryLogisticWeight(int32_t target, bool label, real lr, real weight) {
+  real score = sigmoid(wo_->dotRowWeight(hidden_, target, weight));
+  real alpha = lr * (real(label) - score);
+  grad_.addRow(*wo_, target, alpha);
+  wo_->addRow(hidden_, target, alpha);
+  if (label) {
+    return -log(score);
+  } else {
+    return -log(1.0 - score);
+  }
+}
+
 real Model::negativeSampling(int32_t target, real lr) {
   real loss = 0.0;
   grad_.zero();
@@ -74,6 +86,19 @@ real Model::negativeSampling(int32_t target, real lr) {
       loss += binaryLogistic(target, true, lr);
     } else {
       loss += binaryLogistic(getNegative(target), false, lr);
+    }
+  }
+  return loss;
+}
+
+real Model::negativeSamplingWeight(int32_t target, real lr, real weight) {
+  real loss = 0.0;
+  grad_.zero();
+  for (int32_t n = 0; n <= args_->neg; n++) {
+    if (n == 0) {
+      loss += binaryLogisticWeight(target, true, lr, weight);
+    } else {
+      loss += binaryLogisticWeight(getNegative(target), false, lr, weight);
     }
   }
   return loss;
@@ -283,6 +308,28 @@ real Model::computeLoss(
   return loss;
 }
 
+real Model::computeLossWeight(
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    real lr,
+    real weight) {
+  real loss = 0.0;
+
+  if (args_->loss == loss_name::ns) {
+    loss = negativeSamplingWeight(targets[targetIndex], lr, weight);
+  } else if (args_->loss == loss_name::hs) {
+    loss = hierarchicalSoftmax(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::softmax) {
+    loss = softmax(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::ova) {
+    loss = oneVsAll(targets, lr);
+  } else {
+    throw std::invalid_argument("Unhandled loss function for this model.");
+  }
+
+  return loss;
+}
+
 void Model::update(
     const std::vector<int32_t>& input,
     const std::vector<int32_t>& targets,
@@ -299,6 +346,35 @@ void Model::update(
     assert(targetIndex >= 0);
     assert(targetIndex < osz_);
     loss_ += computeLoss(targets, targetIndex, lr);
+  }
+
+  nexamples_ += 1;
+
+  if (args_->model == model_name::sup) {
+    grad_.mul(1.0 / input.size());
+  }
+  for (auto it = input.cbegin(); it != input.cend(); ++it) {
+    wi_->addRow(grad_, *it, 1.0);
+  }
+}
+
+void Model::updateWeight(
+    const std::vector<int32_t>& input,
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    real lr,
+    real weight) {
+  if (input.size() == 0) {
+    return;
+  }
+  computeHidden(input, hidden_);
+
+  if (targetIndex == kAllLabelsAsTarget) {
+    loss_ += computeLossWeight(targets, -1, lr, weight);
+  } else {
+    assert(targetIndex >= 0);
+    assert(targetIndex < osz_);
+    loss_ += computeLossWeight(targets, targetIndex, lr, weight);
   }
 
   nexamples_ += 1;
