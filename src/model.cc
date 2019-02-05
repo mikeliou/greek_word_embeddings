@@ -373,7 +373,7 @@ void Model::update(
   }
 }
 
-void Model::updateWeight(
+void Model::updateWeightCbow(
     const std::vector<int32_t>& input,
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
@@ -382,6 +382,7 @@ void Model::updateWeight(
   if (input.size() == 0) {
     return;
   }
+  
   //computeHidden(input, hidden_);
   computeHiddenWeight(input, hidden_, weightvector);
 
@@ -401,7 +402,37 @@ void Model::updateWeight(
 
   int32_t vc = 0;
   for (auto it = input.cbegin(); it != input.cend(); ++it) {
-    wi_->addRow(grad_, *it, weightvector[vc++]);
+    //wi_->addRow(grad_, *it, weightvector[vc++]);
+    wi_->addRow(grad_, *it, 1.0);
+  }
+}
+
+void Model::updateWeightSkipgram(
+    const std::vector<int32_t>& input,
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    real lr,
+    real weight) {
+  if (input.size() == 0) {
+    return;
+  }
+  computeHidden(input, hidden_);
+
+  if (targetIndex == kAllLabelsAsTarget) {
+    loss_ += computeLoss(targets, -1, lr);
+  } else {
+    assert(targetIndex >= 0);
+    assert(targetIndex < osz_);
+    loss_ += computeLossWeight(targets, targetIndex, lr, weight);
+  }
+
+  nexamples_ += 1;
+
+  if (args_->model == model_name::sup) {
+    grad_.mul(1.0 / input.size());
+  }
+  for (auto it = input.cbegin(); it != input.cend(); ++it) {
+    wi_->addRow(grad_, *it, 1.0);
   }
 }
 

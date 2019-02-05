@@ -109,12 +109,18 @@ class Model {
       const std::vector<int32_t>&,
       int32_t,
       real);
-  void updateWeight(
+  void updateWeightCbow(
       const std::vector<int32_t>&,
       const std::vector<int32_t>&,
       int32_t,
       real,
       std::vector<double>&);
+  void updateWeightSkipgram(
+      const std::vector<int32_t>&,
+      const std::vector<int32_t>&,
+      int32_t,
+      real,
+      real);
   real computeLoss(const std::vector<int32_t>&, int32_t, real);
   real computeLossWeight(const std::vector<int32_t>&, int32_t, real, real);
   void computeHidden(const std::vector<int32_t>&, Vector&) const;

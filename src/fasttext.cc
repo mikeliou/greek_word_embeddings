@@ -372,7 +372,7 @@ void FastText::cbow(Model& model, real lr, const std::vector<int32_t>& line) {
       }
     }
     
-    //model.updateWeight(bow, line, w, lr, weightvector);
+    model.updateWeightCbow(bow, line, w, lr, weightvector);
 
     /*Vector vec(args_->dim);
     for (int32_t i = 0; i < dict_->nwords(); i++) {
@@ -388,8 +388,12 @@ void FastText::skipgram(
     real lr,
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
+  std::vector<int32_t> bos;
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
+    
+    int32_t boscount = 0;
+    bos.clear();
 
     /*std::vector<double> weightvector;
     for (int32_t wv = -boundary; wv <= boundary; wv++) {
@@ -404,6 +408,13 @@ void FastText::skipgram(
 
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     for (int32_t c = -boundary; c <= boundary; c++) {
+
+      /*if (c == 0) {
+        const std::vector<int32_t>& ngramsBosC = dict_->getSubwords(line[w]);
+        bos.insert(bos.end(), ngramsBosC.cbegin(), ngramsBosC.cend());
+        boscount++;
+      }*/
+
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
 
           //compute weights
@@ -425,6 +436,7 @@ void FastText::skipgram(
         //linear weight: double weight = (boundary + 1) - abs(c);
         //log weight: double weight = log((boundary + 2) - abs(c));
         //exp weight: double weight = 1 + exp(-abs(c));
+        //logistic function weight: double weight = 1 / (1 + exp(-2 * (boundary - abs(c))));
 
         /*double minx = log((boundary + 2) - abs(boundary + 1));
         double maxx = log((boundary + 2) - abs(0));
@@ -434,11 +446,23 @@ void FastText::skipgram(
         if ((maxx - minx) > 0)
           zscore = (weight-minx)/(maxx-minx);*/
 
-        double weight = 1 / (1 + exp(-2 * (boundary - abs(c))));
         //double tanhscore = 0.5 * (tanh(0.01 * ((weight - mean) / stdev)) + 1);
+
+        const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
+        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
+        //boscount++;
+        //if (boscount > 1)
+          //model.update(bos, line, w + c, lr); //ngramsBos correction
         
-        //model.updateWeight(ngrams, line, w + c, lr, weight);
+        //double weight = 1 / (1 + exp(-2 * (boundary - abs(c))));
+        
+        //model.updateWeightSkipgram(ngrams, line, w + c, lr, weight);
+        model.update(ngrams, line, w + c, lr);
+
       }
+
+      if (c == boundary)
+        model.update(bos, line, w, lr);
     }
   }
 }
