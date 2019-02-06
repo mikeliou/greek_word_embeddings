@@ -167,6 +167,9 @@ class FastText {
   FASTTEXT_DEPRECATED("skipgram is being deprecated.")
   void skipgram(Model& model, real lr, const std::vector<int32_t>& line);
 
+  FASTTEXT_DEPRECATED("cbos is being deprecated.")
+  void cbos(Model& model, real lr, const std::vector<int32_t>& line);
+
   FASTTEXT_DEPRECATED("selectEmbeddings is being deprecated.")
   std::vector<int32_t> selectEmbeddings(int32_t cutoff) const;
 

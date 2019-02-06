@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
+#include <map>
 
 #include "utils.h"
 #include "vector.h"
@@ -42,10 +43,9 @@ real Matrix::dotRow(const Vector& vec, int64_t i) const {
   real d = 0.0;
   for (int64_t j = 0; j < n_; j++) {
     d += at(i, j) * vec[j];
-    d = (int)(d * 1000000.0)/1000000.0;
   }
   if (std::isnan(d)) {
-    throw std::runtime_error("Encountered NaN dotrow.");
+    throw std::runtime_error("Encountered NaN.");
   }
   return d;
 }
@@ -72,6 +72,20 @@ real Matrix::dotRowWeight(const Vector& vec, int64_t i, real weight) const {
   real d = 0.0;
   for (int64_t j = 0; j < n_; j++) {
     d += at(i, j) * vec[j] * weight;
+  }
+  if (std::isnan(d)) {
+    throw std::runtime_error("Encountered NaN dotrowweight.");
+  }
+  return d;
+}
+
+real Matrix::dotRowWeightCbow(const Vector& vec, int64_t i, std::map<int32_t, double>& dictWeights) const {
+  assert(i >= 0);
+  assert(i < m_);
+  assert(vec.size() == n_);
+  real d = 0.0;
+  for (int64_t j = 0; j < n_; j++) {
+    d += at(i, j) * vec[j] * dictWeights[i];
   }
   if (std::isnan(d)) {
     throw std::runtime_error("Encountered NaN dotrowweight.");

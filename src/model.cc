@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <stdexcept>
+#include <map>
 
 namespace fasttext {
 
@@ -91,6 +92,18 @@ real Model::binaryLogisticWeight(int32_t target, bool label, real lr, real weigh
   }
 }
 
+real Model::binaryLogisticWeightCbow(int32_t target, bool label, real lr, std::map<int32_t, double>& dictWeights) {
+  real score = sigmoid(wo_->dotRowWeightCbow(hidden_, target, dictWeights));
+  real alpha = lr * (real(label) - score);
+  grad_.addRow(*wo_, target, alpha);
+  wo_->addRow(hidden_, target, alpha);
+  if (label) {
+    return -log(score);
+  } else {
+    return -log(1.0 - score);
+  }
+}
+
 real Model::negativeSampling(int32_t target, real lr) {
   real loss = 0.0;
   grad_.zero();
@@ -99,6 +112,19 @@ real Model::negativeSampling(int32_t target, real lr) {
       loss += binaryLogistic(target, true, lr);
     } else {
       loss += binaryLogistic(getNegative(target), false, lr);
+    }
+  }
+  return loss;
+}
+
+real Model::negativeSamplingWeightCbow(int32_t target, real lr, std::map<int32_t, double>& dictWeights) {
+  real loss = 0.0;
+  grad_.zero();
+  for (int32_t n = 0; n <= args_->neg; n++) {
+    if (n == 0) {
+      loss += binaryLogisticWeightCbow(target, true, lr, dictWeights);
+    } else {
+      loss += binaryLogisticWeightCbow(getNegative(target), false, lr, dictWeights);
     }
   }
   return loss;
@@ -364,6 +390,28 @@ real Model::computeLoss(
   return loss;
 }
 
+real Model::computeLossWeightCbow(
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    real lr,
+    std::map<int32_t, double>& dictWeights) {
+  real loss = 0.0;
+
+  if (args_->loss == loss_name::ns) {
+    loss = negativeSampling(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::hs) {
+    loss = hierarchicalSoftmax(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::softmax) {
+    loss = softmax(targets[targetIndex], lr);
+  } else if (args_->loss == loss_name::ova) {
+    loss = oneVsAll(targets, lr);
+  } else {
+    throw std::invalid_argument("Unhandled loss function for this model.");
+  }
+
+  return loss;
+}
+
 real Model::computeLossCbos(
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
@@ -476,20 +524,20 @@ void Model::updateWeightCbow(
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
     real lr,
-    std::vector<double>& weightvector) {
+    std::map<int32_t, double>& dictWeights) {
   if (input.size() == 0) {
     return;
   }
   
-  //computeHidden(input, hidden_);
-  computeHiddenWeight(input, hidden_, weightvector);
+  computeHidden(input, hidden_);
+  //computeHiddenWeight(input, hidden_, weightvector);
 
   if (targetIndex == kAllLabelsAsTarget) {
     loss_ += computeLoss(targets, -1, lr);
   } else {
     assert(targetIndex >= 0);
     assert(targetIndex < osz_);
-    loss_ += computeLoss(targets, targetIndex, lr);
+    loss_ += computeLossWeightCbow(targets, targetIndex, lr, dictWeights);
   }
 
   nexamples_ += 1;

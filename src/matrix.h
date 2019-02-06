@@ -12,6 +12,7 @@
 #include <istream>
 #include <ostream>
 #include <vector>
+#include <map>
 
 #include <assert.h>
 #include "real.h"
@@ -62,6 +63,7 @@ class Matrix {
   void zero();
   void uniform(real);
   real dotRow(const Vector&, int64_t) const;
+  real dotRowWeightCbow(const Vector&, int64_t, std::map<int32_t, double>&) const;
   real dotRowCbos(const Vector&, int64_t, Vector&) const;
   real dotRowWeight(const Vector&, int64_t, real) const;
   void addRow(const Vector&, int64_t, real);

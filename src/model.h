@@ -12,6 +12,7 @@
 #include <random>
 #include <utility>
 #include <vector>
+#include <map>
 
 #include "args.h"
 #include "matrix.h"
@@ -75,7 +76,9 @@ class Model {
   real binaryLogistic(int32_t, bool, real);
   real binaryLogisticCbos(int32_t, bool, real);
   real binaryLogisticWeight(int32_t, bool, real, real);
+  real binaryLogisticWeightCbow(int32_t, bool, real, std::map<int32_t, double>&);
   real negativeSampling(int32_t, real);
+  real negativeSamplingWeightCbow(int32_t, real, std::map<int32_t, double>&);
   real negativeSamplingCbos(int32_t, real);
   real negativeSamplingWeight(int32_t, real, real);
   real hierarchicalSoftmax(int32_t, real);
@@ -123,7 +126,7 @@ class Model {
       const std::vector<int32_t>&,
       int32_t,
       real,
-      std::vector<double>&);
+      std::map<int32_t, double>&);
   void updateWeightSkipgram(
       const std::vector<int32_t>&,
       const std::vector<int32_t>&,
@@ -131,6 +134,7 @@ class Model {
       real,
       real);
   real computeLoss(const std::vector<int32_t>&, int32_t, real);
+  real computeLossWeightCbow(const std::vector<int32_t>&, int32_t, real, std::map<int32_t, double>&);
   real computeLossCbos(const std::vector<int32_t>&, int32_t, real);
   real computeLossWeight(const std::vector<int32_t>&, int32_t, real, real);
   void computeHidden(const std::vector<int32_t>&, Vector&) const;

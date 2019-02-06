@@ -72,6 +72,8 @@ std::string Args::modelToString(model_name mn) const {
       return "cbow";
     case model_name::sg:
       return "sg";
+    case model_name::cbos:
+      return "cbos";
     case model_name::sup:
       return "sup";
   }
@@ -89,6 +91,8 @@ void Args::parseArgs(const std::vector<std::string>& args) {
     lr = 0.1;
   } else if (command == "cbow") {
     model = model_name::cbow;
+  } else if (command == "cbos") {
+    model = model_name::cbos;
   }
   for (int ai = 2; ai < args.size(); ai += 2) {
     if (args[ai][0] != '-') {
