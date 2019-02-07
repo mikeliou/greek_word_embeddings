@@ -401,10 +401,10 @@ void FastText::cbos(
   std::uniform_int_distribution<> uniform(1, args_->ws);
   std::vector<int32_t> bos;
 
-  std::vector<double> constWeightsVector;
-  for (int32_t wc = -5; wc <= 5; wc++) {
-    constWeightsVector.push_back(model.sigmoid(wc));
-  }
+  //std::vector<double> constWeightsVector;
+  //for (int32_t wc = -5; wc <= 5; wc++) {
+    //constWeightsVector.push_back(model.sigmoid(wc));
+  //}
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
@@ -419,8 +419,8 @@ void FastText::cbos(
         model.update(ngrams, line, w + c, lr);
       }
 
-      if (c == boundary)
-      {
+      //if (c == boundary)
+      //{
         /*std::vector<int32_t> bos;
         std::vector<double> weightvector;
         std::map<int32_t, double> dictWeights;
@@ -446,10 +446,12 @@ void FastText::cbos(
         //{
           //assert(weightvector.size() > 0);
           //assert(bos.size() == weightvector.size());
-          model.update(bos, line, w, lr);
+          //model.update(bos, line, w, lr);
         //}
-      }
+      //}
     }
+    if (bos.size() > 0)
+      model.update(bos, line, w, lr);
   }
 }
 
