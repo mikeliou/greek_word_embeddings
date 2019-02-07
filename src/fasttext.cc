@@ -419,8 +419,8 @@ void FastText::cbos(
         model.update(ngrams, line, w + c, lr);
       }
 
-      if (c == boundary)
-        model.update(bos, line, w, lr);
+      //if (c == boundary)
+        //model.update(bos, line, w, lr);
       //{
         /*std::vector<int32_t> bos;
         std::vector<double> weightvector;
@@ -451,8 +451,8 @@ void FastText::cbos(
         //}
       //}
     }
-    //if (bos.size() > 0)
-      //model.update(bos, line, w, lr);
+    if (bos.size() > 0)
+      model.update(bos, line, w, lr);
   }
 }
 
