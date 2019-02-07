@@ -409,7 +409,7 @@ void FastText::cbos(
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     //int32_t boscount = 0;
-    //bos.clear();
+    bos.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
