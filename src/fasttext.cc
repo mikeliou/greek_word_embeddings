@@ -447,7 +447,7 @@ void FastText::cbos(
         {
           assert(weightvector.size() > 0);
           assert(bos.size() == weightvector.size());
-          model.updateWeightCbow(bos, line, w, lr, dictWeights);
+          model.update(bos, line, w, lr);
         }
       }
     }
