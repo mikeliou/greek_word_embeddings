@@ -399,7 +399,7 @@ void FastText::cbos(
     real lr,
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
-  //std::vector<int32_t> bos;
+  std::vector<int32_t> bos;
 
   std::vector<double> constWeightsVector;
   for (int32_t wc = -5; wc <= 5; wc++) {
@@ -413,16 +413,15 @@ void FastText::cbos(
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
-        //const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-        //bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-        //boscount++;
+        const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
+        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
         
         model.update(ngrams, line, w + c, lr);
       }
 
       if (c == boundary)
       {
-        std::vector<int32_t> bos;
+        /*std::vector<int32_t> bos;
         std::vector<double> weightvector;
         std::map<int32_t, double> dictWeights;
         int32_t expandBoundary = 2 * boundary;
@@ -441,14 +440,14 @@ void FastText::cbos(
               dictWeights[line[w + c]] = weight;
             }
           }
-        }
+        }*/
         
-        if (bos.size() > 0)
-        {
-          assert(weightvector.size() > 0);
-          assert(bos.size() == weightvector.size());
+        //if (bos.size() > 0)
+        //{
+          //assert(weightvector.size() > 0);
+          //assert(bos.size() == weightvector.size());
           model.update(bos, line, w, lr);
-        }
+        //}
       }
     }
   }
