@@ -400,7 +400,6 @@ void FastText::cbos(
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
   std::vector<int32_t> bos;
-
   //std::vector<double> constWeightsVector;
   //for (int32_t wc = -5; wc <= 5; wc++) {
     //constWeightsVector.push_back(model.sigmoid(wc));
@@ -411,15 +410,22 @@ void FastText::cbos(
     //int32_t boscount = 0;
     bos.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
+    for (int32_t c = -boundary; c <= boundary; c++) {
+      if (w + c >= 0 && w + c < line.size()) {
+        const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
+        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
+      }
+    }
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
+        for (int32_t z = 0; z <= ngramsBos.size(); z++)
+          bos.erase(std::remove(bos.begin(), bos.end(), ngramsBos[z]), bos.end());
         
         model.update(ngrams, line, w + c, lr);
+        model.update(bos, line, w + c, lr);
 
-        //model.update(bos, line, w + c, lr);
+        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
       }
 
       //if (c == boundary)
@@ -458,23 +464,6 @@ void FastText::cbos(
       //model.update(bos, line, w, lr);
   }
 
-  for (int32_t w = 0; w < line.size(); w++) {
-    int32_t boundary = uniform(model.rng);
-    //int32_t boscount = 0;
-    bos.clear();
-    const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
-    for (int32_t c = -boundary; c <= boundary; c++) {
-      if (c != 0 && w + c >= 0 && w + c < line.size()) {
-        const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-        
-        //model.update(ngrams, line, w + c, lr);
-
-        model.update(bos, line, w + c, lr);
-      }
-    }
-  }
 }
 
 std::tuple<int64_t, double, double>
