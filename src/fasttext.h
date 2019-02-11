@@ -168,7 +168,7 @@ class FastText {
   void skipgram(Model& model, real lr, const std::vector<int32_t>& line);
 
   FASTTEXT_DEPRECATED("skipgram is being deprecated.")
-  void nskipngram(Model& model, real lr, const std::vector<int32_t>& line);
+  void kskipngram(Model& model, real lr, const std::vector<int32_t>& line);
 
   FASTTEXT_DEPRECATED("cbos is being deprecated.")
   void cbos(Model& model, real lr, const std::vector<int32_t>& line);

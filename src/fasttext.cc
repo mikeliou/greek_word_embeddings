@@ -394,7 +394,7 @@ void FastText::skipgram(
   }
 }
 
-void FastText::nskipngram(
+void FastText::kskipngram(
     Model& model,
     real lr,
     const std::vector<int32_t>& line) {
@@ -402,12 +402,21 @@ void FastText::nskipngram(
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
-    const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    for (int32_t c = -boundary; c <= boundary; c++) {
-      if (c != 0 && w + c >= 0 && w + c < line.size()) {
-        double weight = 1.0 / abs(c);
+    for (int32_t c = 0; c <= boundary; c++) {
+    const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w + c]);
+      if (c != 0 && w + c < line.size()) {
+        for (int32_t d = 0; d <= boundary; d++) {
+          if (d != c && w + d < line.size())
+          {
+            const std::vector<int32_t>& ngrams2 = dict_->getSubwords(line[w + d]);
 
-        model.updateWeightSkipgram(ngrams, line, w + c, lr, weight);
+            std::vector<int32_t> kngrams;
+            kngrams.insert(kngrams.end(), ngrams.cbegin(), ngrams.cend());
+            kngrams.insert(kngrams.end(), ngrams2.cbegin(), ngrams2.cend());
+
+            model.update(kngrams, line, w, lr);
+          }
+        }
       }
     }
   }
@@ -424,7 +433,7 @@ void FastText::cbos(
     int32_t boundary = uniform(model.rng);
     bos.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    for (int32_t c = 0; c <= boundary; c++) {
+    for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
         bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
@@ -730,9 +739,9 @@ void FastText::trainThread(int32_t threadId) {
     } else if (args_->model == model_name::sg) {
       localTokenCount += dict_->getLine(ifs, line, model.rng);
       skipgram(model, lr, line);
-    } else if (args_->model == model_name::nsng) {
+    } else if (args_->model == model_name::ksng) {
       localTokenCount += dict_->getLine(ifs, line, model.rng);
-      nskipngram(model, lr, line);
+      kskipngram(model, lr, line);
     }else if (args_->model == model_name::cbos) {
       localTokenCount += dict_->getLine(ifs, line, model.rng);
       cbos(model, lr, line);
