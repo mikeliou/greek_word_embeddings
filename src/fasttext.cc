@@ -413,7 +413,7 @@ void FastText::cbos(
         model.update(ngrams, line, w + c, lr);
       }
     }
-    if (bos.size() > ngrams.size())
+    if (bos.size() > 0)
       model.update(bos, line, w, lr);
   }
 }
