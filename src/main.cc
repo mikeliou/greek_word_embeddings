@@ -407,7 +407,7 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
   std::string command(args[1]);
-  if (command == "skipgram" || command == "cbow" || command == "cbos" || command == "supervised") {
+  if (command == "skipgram" || command == "nsng" || command == "cbow" || command == "cbos" || command == "supervised") {
     train(args);
   } else if (command == "test" || command == "test-label") {
     test(args);

@@ -394,6 +394,23 @@ void FastText::skipgram(
   }
 }
 
+void FastText::nskipngram(
+    Model& model,
+    real lr,
+    const std::vector<int32_t>& line) {
+  std::uniform_int_distribution<> uniform(1, args_->ws);
+
+  for (int32_t w = 0; w < line.size(); w++) {
+    int32_t boundary = uniform(model.rng);
+    const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
+    for (int32_t c = -boundary; c <= boundary; c++) {
+      if (c != 0 && w + c >= 0 && w + c < line.size()) {
+        model.update(ngrams, line, w + c, lr);
+      }
+    }
+  }
+}
+
 void FastText::cbos(
     Model& model,
     real lr,
@@ -406,15 +423,16 @@ void FastText::cbos(
     bos.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     for (int32_t c = 0; c <= boundary; c++) {
+      if (c == boundary)
+        model.update(bos, line, w, lr);
+
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
         bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-        
+
         model.update(ngrams, line, w + c, lr);
       }
     }
-    if (bos.size() > 0)
-      model.update(bos, line, w, lr);
   }
 }
 
@@ -710,7 +728,10 @@ void FastText::trainThread(int32_t threadId) {
     } else if (args_->model == model_name::sg) {
       localTokenCount += dict_->getLine(ifs, line, model.rng);
       skipgram(model, lr, line);
-    } else if (args_->model == model_name::cbos) {
+    } else if (args_->model == model_name::nsng) {
+      localTokenCount += dict_->getLine(ifs, line, model.rng);
+      nskipngram(model, lr, line);
+    }else if (args_->model == model_name::cbos) {
       localTokenCount += dict_->getLine(ifs, line, model.rng);
       cbos(model, lr, line);
     }
