@@ -400,70 +400,22 @@ void FastText::cbos(
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
   std::vector<int32_t> bos;
-  //std::vector<double> constWeightsVector;
-  //for (int32_t wc = -5; wc <= 5; wc++) {
-    //constWeightsVector.push_back(model.sigmoid(wc));
-  //}
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
-    //int32_t boscount = 0;
     bos.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    for (int32_t c = -boundary; c <= boundary; c++) {
-      if (w + c >= 0 && w + c < line.size()) {
-        const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-      }
-    }
-    for (int32_t c = -boundary; c <= boundary; c++) {
+    for (int32_t c = 0; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-        for (int32_t z = 0; z <= ngramsBos.size(); z++)
-          bos.erase(std::remove(bos.begin(), bos.end(), ngramsBos[z]), bos.end());
+        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
         
         model.update(ngrams, line, w + c, lr);
-        model.update(bos, line, w + c, lr);
-
-        bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
       }
-
-      //if (c == boundary)
-        //model.update(bos, line, w, lr);
-      //{
-        /*std::vector<int32_t> bos;
-        std::vector<double> weightvector;
-        std::map<int32_t, double> dictWeights;
-        int32_t expandBoundary = 2 * boundary;
-        for (int32_t c = -expandBoundary; c <= expandBoundary; c++) {
-          if (c != 0 && w + c >= 0 && w + c < line.size()) {
-            const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
-            bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-            
-            int32_t weightIndex = constWeightsVector.size() - abs(c);
-            double weight = constWeightsVector[weightIndex];
-            for (int32_t wv = 0; wv < ngramsBos.size(); wv++) {
-              assert(weight <= 1.0);
-              assert(weight >= 0.0);
-              weightvector.push_back(weight);
-              //dictWeights[ngramsBos[wv]] = weight;
-              dictWeights[line[w + c]] = weight;
-            }
-          }
-        }*/
-        
-        //if (bos.size() > 0)
-        //{
-          //assert(weightvector.size() > 0);
-          //assert(bos.size() == weightvector.size());
-          //model.update(bos, line, w, lr);
-        //}
-      //}
     }
-    //if (bos.size() > 0)
-      //model.update(bos, line, w, lr);
+    if (bos.size() > ngrams.size())
+      model.update(bos, line, w, lr);
   }
-
 }
 
 std::tuple<int64_t, double, double>
