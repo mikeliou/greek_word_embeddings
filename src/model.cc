@@ -81,7 +81,7 @@ real Model::binaryLogisticCbos(int32_t target, bool label, real lr) {
 }
 
 real Model::binaryLogisticWeight(int32_t target, bool label, real lr, real weight) {
-  real score = sigmoid(wo_->dotRowWeight(hidden_, target, weight));
+  real score = sigmoid(wo_->dotRow(hidden_, target) * weight);
   real alpha = lr * (real(label) - score);
   grad_.addRow(*wo_, target, alpha);
   wo_->addRow(hidden_, target, alpha);

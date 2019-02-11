@@ -405,7 +405,9 @@ void FastText::nskipngram(
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
-        model.update(ngrams, line, w + c, lr);
+        double weight = 1.0 / abs(c);
+
+        model.updateWeightSkipgram(ngrams, line, w + c, lr, weight);
       }
     }
   }
