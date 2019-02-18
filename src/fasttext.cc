@@ -446,7 +446,9 @@ void FastText::cbos(
         model.update(ngrams, line, w + c, lr);
       }
     }
-    model.update(bos, line, w, lr);
+    std::uniform_int_distribution<> distr(-boundary, boundary);
+    int32_t randNum = uniform(model.rng);
+    model.update(bos, line, w + randNum, lr);
   }
 }
 
