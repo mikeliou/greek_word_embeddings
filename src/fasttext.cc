@@ -433,16 +433,15 @@ void FastText::cbos(
     int32_t boundary = uniform(model.rng);
     bos.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
+    bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
         bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
 
         model.update(ngrams, line, w + c, lr);
+        model.update(bos, line, w + c, lr);
       }
-
-      if (c == boundary)
-        model.update(bos, line, w, lr);
     }
   }
 }
