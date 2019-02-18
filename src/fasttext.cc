@@ -439,11 +439,20 @@ void FastText::cbos(
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     //bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     for (int32_t c = -boundary; c <= boundary; c++) {
-      if (w + c >= 0 && w + c < line.size()) {
+      if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
         bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
+        for (int32_t d = c + 1; d <= boundary; d++) {
+          if (d != 0 && w + d >= 0 && w + d < line.size()) {
+            const std::vector<int32_t>& ngrams2 = dict_->getSubwords(line[w + d]);
 
-        //model.update(ngrams, line, w + c, lr);
+            std::vector<int32_t> kngrams;
+            kngrams.insert(kngrams.end(), ngrams.cbegin(), ngrams.cend());
+            kngrams.insert(kngrams.end(), ngrams2.cbegin(), ngrams2.cend());
+
+            model.update(kngrams, line, w, lr);
+          }
+        }
         model.update(bos, line, w + c, lr);
       }
     }
