@@ -402,11 +402,14 @@ void FastText::kskipngram(
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
-    for (int32_t c = -boundary; c <= boundary; c++) {
-    const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w + c]);
-      if (c != 0 && w + c >= 0 && w + c < line.size()) {
-        for (int32_t d = -boundary; d <= boundary; d++) {
-          if (d != 0 && d != c && w + d >= 0 && w + d < line.size())
+    for (int32_t c = -boundary; c <= boundary; c++) 
+    {
+      if (c != 0 && w + c >= 0 && w + c < line.size()) 
+      {
+        const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w + c]);
+        for (int32_t d = c + 1; d <= boundary; d++) 
+        {
+          if (d != 0 && w + d >= 0 && w + d < line.size())
           {
             const std::vector<int32_t>& ngrams2 = dict_->getSubwords(line[w + d]);
 
