@@ -402,6 +402,7 @@ void FastText::kskipngram(
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
+
     for (int32_t c = -boundary; c <= boundary; c++) 
     {
       if (c != 0 && w + c >= 0 && w + c < line.size()) 
@@ -439,11 +440,13 @@ void FastText::cbos(
     bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
+        model.update(ngrams, line, w + c, lr);
+
+        if (bos.size() > ngrams.size())
+          model.update(bos, line, w + c, lr);
+
         const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
         bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-
-        model.update(ngrams, line, w + c, lr);
-        model.update(bos, line, w + c, lr);
       }
     }
   }
