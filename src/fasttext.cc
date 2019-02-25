@@ -441,7 +441,7 @@ void FastText::cbos(
     //bosWeights.clear();
     boundaryWords.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    //bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
+    bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     boundaryWords.push_back(dict_->getWord(line[w]));
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
