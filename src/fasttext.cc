@@ -431,20 +431,15 @@ void FastText::cbos(
     real lr,
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
-  std::uniform_int_distribution<> cbosBool(0, 1);
   std::vector<int32_t> bos;
-  std::vector<int32_t> bosRand;
-  //std::vector<double> bosWeights;
   std::vector<std::string> boundaryWords;
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     bos.clear();
-    bosRand.clear();
-    //bosWeights.clear();
     boundaryWords.clear();
+
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    //bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     boundaryWords.push_back(dict_->getWord(line[w]));
 
     for (int32_t c = -boundary; c <= boundary; c++) {
@@ -454,12 +449,6 @@ void FastText::cbos(
         {
           const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
           bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
-
-          if (cbosBool(model.rng))
-            bosRand.insert(bosRand.end(), ngramsBos.cbegin(), ngramsBos.cend());
-
-          //for(int32_t i = 0; i < ngramsBos.size(); i++)
-            //bosWeights.push_back(1.0 / abs(c));
 
           model.update(ngrams, line, w + c, lr);
           boundaryWords.push_back(dict_->getWord(line[w + c]));
@@ -471,8 +460,6 @@ void FastText::cbos(
     int32_t randNum = uniform(model.rng);
     if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
       model.update(bos, line, w + randNum, lr);
-
-    model.update(bosRand, line, w, lr);
   }
 }
 
