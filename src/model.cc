@@ -252,7 +252,7 @@ void Model::computeHiddenCbos(const std::vector<int32_t>& input, Vector& hidden,
   hidden.mul(1.0 / input.size());
 }
 
-void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, std::vector<double>& weightvector)
+void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, const std::vector<double>& inputWeights)
     const {
   assert(hidden.size() == hsz_);
   hidden.zero();
@@ -261,7 +261,7 @@ void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidde
     if (quant_) {
       hidden.addRow(*qwi_, *it);
     } else {
-      hidden.addRow(*wi_, *it, weightvector[c++]);
+      hidden.addRow(*wi_, *it, inputWeights[c++]);
     }
   }
   hidden.mul(1.0 / input.size());
@@ -491,23 +491,20 @@ void Model::updateCbos(
     const std::vector<int32_t>& input,
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
-    Vector& vecCbos,
+    const std::vector<double>& inputWeights,
     real lr) {
   if (input.size() == 0) {
     return;
   }
+  computeHiddenWeight(input, hidden_, inputWeights);
 
-  vecCbos_.zero();
-  for (int64_t j = 0; j < args_->dim; j++) {
-    vecCbos[j] = (int)(vecCbos[j] * 1000.0)/1000.0;
-    vecCbos_[j] = vecCbos[j];
+  if (targetIndex == kAllLabelsAsTarget) {
+    loss_ += computeLoss(targets, -1, lr);
+  } else {
+    assert(targetIndex >= 0);
+    assert(targetIndex < osz_);
+    loss_ += computeLoss(targets, targetIndex, lr);
   }
-
-  computeHidden(input, hidden_);
-
-  assert(vecCbos.size() > 0);
-  //loss_ += computeLoss(targets, targetIndex, lr);
-  loss_ += computeLossCbos(targets, targetIndex, lr);
 
   nexamples_ += 1;
 

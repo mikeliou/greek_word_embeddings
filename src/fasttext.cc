@@ -432,10 +432,12 @@ void FastText::cbos(
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
   std::vector<int32_t> bos;
+  //std::vector<double> bosWeights;
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     bos.clear();
+    //bosWeights.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     //bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     for (int32_t c = -boundary; c <= boundary; c++) {
@@ -443,11 +445,14 @@ void FastText::cbos(
           const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
           bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
 
+          //for(int32_t i = 0; i < ngramsBos.size(); i++)
+            //bosWeights.push_back(1.0 / abs(c));
+
           model.update(ngrams, line, w + c, lr);
       }
     }
     std::uniform_int_distribution<> distr(-boundary, boundary);
-    int32_t randNum = uniform(model.rng);
+    int32_t randNum = distr(model.rng);
     if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
       model.update(bos, line, w + randNum, lr);
   }

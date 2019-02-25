@@ -119,7 +119,7 @@ class Model {
       const std::vector<int32_t>&,
       const std::vector<int32_t>&,
       int32_t,
-      Vector&,
+      const std::vector<double>&,
       real);
   void updateWeightCbow(
       const std::vector<int32_t>&,
@@ -139,7 +139,7 @@ class Model {
   real computeLossWeight(const std::vector<int32_t>&, int32_t, real, real);
   void computeHidden(const std::vector<int32_t>&, Vector&) const;
   void computeHiddenCbos(const std::vector<int32_t>&, Vector&, Vector&) const;
-  void computeHiddenWeight(const std::vector<int32_t>&, Vector&, std::vector<double>&) const;
+  void computeHiddenWeight(const std::vector<int32_t>&, Vector&, const std::vector<double>&) const;
   void computeOutputSigmoid(Vector&, Vector&) const;
   void computeOutputSoftmax(Vector&, Vector&) const;
   void computeOutputSoftmax();
