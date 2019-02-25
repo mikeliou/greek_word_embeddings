@@ -439,6 +439,7 @@ void FastText::cbos(
     int32_t boundary = uniform(model.rng);
     bos.clear();
     //bosWeights.clear();
+    boundaryWords.clear();
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
     bos.insert(bos.end(), ngrams.cbegin(), ngrams.cend());
     for (int32_t c = -boundary; c <= boundary; c++) {
