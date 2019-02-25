@@ -451,8 +451,8 @@ void FastText::cbos(
           model.update(ngrams, line, w + c, lr);
       }
     }
-    std::uniform_int_distribution<> distr(1, 2*args_->ws);
-    int32_t randNum = distr(model.rng);
+    //std::uniform_int_distribution<> distr(1, 2*args_->ws);
+    int32_t randNum = uniform(model.rng);
     if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
       model.update(bos, line, w + randNum, lr);
   }
