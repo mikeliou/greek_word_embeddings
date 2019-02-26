@@ -252,7 +252,7 @@ void Model::computeHiddenCbos(const std::vector<int32_t>& input, Vector& hidden,
   hidden.mul(1.0 / input.size());
 }
 
-void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, const std::vector<double>& inputWeights)
+void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, double weight)
     const {
   assert(hidden.size() == hsz_);
   hidden.zero();
@@ -261,10 +261,11 @@ void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidde
     if (quant_) {
       hidden.addRow(*qwi_, *it);
     } else {
-      hidden.addRow(*wi_, *it, inputWeights[c++]);
+      hidden.addRow(*wi_, *it);
     }
   }
   hidden.mul(1.0 / input.size());
+  hidden.addRow(*wi_, weight);
 }
 
 bool Model::comparePairs(
@@ -496,7 +497,7 @@ void Model::updateCbos(
   if (input.size() == 0) {
     return;
   }
-  computeHiddenWeight(input, hidden_, inputWeights);
+  computeHidden(input, hidden_);
 
   if (targetIndex == kAllLabelsAsTarget) {
     loss_ += computeLoss(targets, -1, lr);
@@ -555,18 +556,18 @@ void Model::updateWeightSkipgram(
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
     real lr,
-    real weight) {
+    double weight) {
   if (input.size() == 0) {
     return;
   }
-  computeHidden(input, hidden_);
+  computeHiddenWeight(input, hidden_, weight);
 
   if (targetIndex == kAllLabelsAsTarget) {
     loss_ += computeLoss(targets, -1, lr);
   } else {
     assert(targetIndex >= 0);
     assert(targetIndex < osz_);
-    loss_ += computeLossWeight(targets, targetIndex, lr, weight);
+    loss_ += computeLoss(targets, targetIndex, lr);
   }
 
   nexamples_ += 1;
