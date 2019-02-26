@@ -43,7 +43,6 @@ real Matrix::dotRow(const Vector& vec, int64_t i) const {
   real d = 0.0;
   for (int64_t j = 0; j < n_; j++) {
     d += at(i, j) * vec[j];
-    d = (int)(d * 1000000.0)/1000000.0;
   }
   if (std::isnan(d)) {
     throw std::runtime_error("Encountered NaN.");
