@@ -252,7 +252,7 @@ void Model::computeHiddenCbos(const std::vector<int32_t>& input, Vector& hidden,
   hidden.mul(1.0 / input.size());
 }
 
-void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, double weight)
+void Model::computeHiddenWeight(const std::vector<int32_t>& input, Vector& hidden, real weight)
     const {
   assert(hidden.size() == hsz_);
   hidden.zero();
@@ -556,7 +556,7 @@ void Model::updateWeightSkipgram(
     const std::vector<int32_t>& targets,
     int32_t targetIndex,
     real lr,
-    double weight) {
+    real weight) {
   if (input.size() == 0) {
     return;
   }

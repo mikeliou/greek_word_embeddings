@@ -444,7 +444,7 @@ void FastText::cbos(
           const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
           bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
 
-          double weight = 1.0 / abs(c);
+          real weight = 1.0 / abs(c);
 
           model.updateWeightSkipgram(ngrams, line, w + c, lr, weight);
       }
