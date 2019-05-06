@@ -75,6 +75,7 @@ def create_graphs_of_words(docs, window_size):
     max_docs = len(docs)
     doc_count = 0
     for doc in docs:
+        doc_count = doc_count + 1
         if len(doc) == 0: continue
         for i in range(len(doc)):
             if doc[i] not in G.nodes():
@@ -84,21 +85,20 @@ def create_graphs_of_words(docs, window_size):
                     if G.has_edge(doc[i], doc[j]): G[doc[i]][doc[j]]['weight'] = G[doc[i]][doc[j]]['weight'] + 1
                     else: G.add_edge(doc[i], doc[j], weight = 1)
 
-        doc_count = doc_count + 1
         print(str(doc_count) + ' of ' + str(max_docs))
         #graphs.append(G)
         #sizes.append(G.number_of_nodes())
         #degs.append(2.0*G.number_of_edges()/G.number_of_nodes())
 
     #for graph in graphs:
-    pos = nx.spring_layout(G)
-    nx.draw(G, with_labels = True)
-    weights = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=weights)
+    #pos = nx.spring_layout(G)
+    #nx.draw(G, with_labels = True)
+    #weights = nx.get_edge_attributes(G,'weight')
+    #nx.draw_networkx_edge_labels(G, pos, edge_labels=weights)
     #plt.show()
 
-    for a, b, data in sorted(G.edges(data=True), key=lambda x: x[2]['weight'], reverse=True):
-        print('{a} {b} {w}'.format(a=a, b=b, w=data['weight']))
+    #for a, b, data in sorted(G.edges(data=True), key=lambda x: x[2]['weight'], reverse=True):
+    #    print('{a} {b} {w}'.format(a=a, b=b, w=data['weight']))
 
     return G
 
