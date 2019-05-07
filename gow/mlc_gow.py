@@ -144,10 +144,10 @@ def main():
     words_dict = build_words_dict(docs)
     print("Vocabulary size: ", len(words_dict))
 
-    graph = create_graphs_of_words_dict(docs, args.window_size, words_dict)
-    #graph = create_graphs_of_words(docs, args.window_size)
+    #graph = create_graphs_of_words_dict(docs, args.window_size, words_dict)
+    graph = create_graphs_of_words(docs, args.window_size)
 
-    fh=open("test.edgelist",'wb')
+    fh=open("gow.edgelist",'wb')
     nx.write_edgelist(graph, fh)
 
     node2vec = Node2Vec(graph, dimensions=args.dimensions, num_walks=args.num_walks, walk_length=args.walk_length)
