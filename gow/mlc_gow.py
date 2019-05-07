@@ -52,19 +52,42 @@ def preprocessing(docs):
 
     return preprocessed_docs
 
-def get_vocab(docs):
-    vocab = set()
+def build_words_dict(docs):
+    words_dict = dict()
+    word_id = 0
 
     for doc in docs:
         for word in doc:
-            vocab.add(word)
+            if word not in words_dict:
+                word_id = word_id + 1
+                words_dict[word] = word_id
         
-    return vocab
+    return words_dict
+
+def create_graphs_of_words_dict(docs, window_size, words_dict):
+    G = nx.Graph()
+    max_docs = len(docs)
+    doc_count = 0
+    for doc in docs:
+        doc_count = doc_count + 1
+        if len(doc) == 0: continue
+        for i in range(len(doc)):
+            if words_dict[doc[i]] not in G.nodes():
+                G.add_node(words_dict[doc[i]])
+            for j in range(i+1, i+window_size):
+                if j < len(doc):
+                    if G.has_edge(words_dict[doc[i]], words_dict[doc[j]]): 
+                        G[words_dict[doc[i]]][words_dict[doc[j]]]['weight'] = G[words_dict[doc[i]]][words_dict[doc[j]]]['weight'] + 1
+                    else: 
+                        G.add_edge(words_dict[doc[i]], words_dict[doc[j]], weight = 1)
+
+        print(str(doc_count) + ' of ' + str(max_docs))
+
+    return G
 
 def create_graphs_of_words(docs, window_size):
     """ 
     Create graphs of words
-
     """
     #graphs = list()
     #sizes = list()
@@ -104,8 +127,8 @@ def create_graphs_of_words(docs, window_size):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-input", dest="input_file", required=True,)
-    parser.add_argument("-output", dest="output_file", required=True)
+    parser.add_argument("-input", dest="input_file", default='datasets/testData.txt')
+    parser.add_argument("-output", dest="output_file", default='test')
     parser.add_argument("-dim", dest="dimensions", default=100, type=int)
     parser.add_argument("-ws", dest="window_size", default=5, type=int)
     parser.add_argument("-minCount", dest="min_count", default=5, type=int)
@@ -118,12 +141,19 @@ def main():
     docs = load_file(args.input_file)
     docs = preprocessing(docs)
 
-    vocab = get_vocab(docs)
-    print("Vocabulary size: ", len(vocab))
+    words_dict = build_words_dict(docs)
+    print("Vocabulary size: ", len(words_dict))
 
-    graph = create_graphs_of_words(docs, args.window_size)
+    graph = create_graphs_of_words_dict(docs, args.window_size, words_dict)
+    #graph = create_graphs_of_words(docs, args.window_size)
+
+    fh=open("test.edgelist",'wb')
+    nx.write_edgelist(graph, fh)
+
     node2vec = Node2Vec(graph, dimensions=args.dimensions, num_walks=args.num_walks, walk_length=args.walk_length)
     model = node2vec.fit(window=args.window_size, min_count=args.min_count, sg=args.sg)
+
+    print(model.vocab)
 
     model.wv.save_word2vec_format(args.output_file + ".vec")
     model.save(args.output_file + ".bin")
