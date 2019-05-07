@@ -25,7 +25,7 @@ def load_file(filename):
     return docs
 
 def clean_str(s):
-    s = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", s)     
+    s = re.sub(r"[^A-Za-zΑ-Ωα-ωΆ-Ώά-ώ0-9(),!?\'\`]", " ", s)     
     #string = re.sub(r"\'s", " \'s", string) 
     #string = re.sub(r"\'ve", " \'ve", string) 
     #string = re.sub(r"n\'t", " n\'t", string) 
