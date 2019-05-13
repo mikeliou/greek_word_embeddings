@@ -16,6 +16,20 @@ import node2vec
 import string
 import re
 from gensim.models import Word2Vec
+from gensim.models.callbacks import CallbackAny2Vec
+
+class EpochLogger(CallbackAny2Vec):
+	'''Callback to log information about training'''
+
+	def __init__(self):
+		self.epoch = 0
+
+	def on_epoch_begin(self, model):
+		print("Epoch #{} start".format(self.epoch))
+
+	def on_epoch_end(self, model):
+		print("Epoch #{} end".format(self.epoch))
+		self.epoch += 1
 
 def parse_args():
 	'''
@@ -60,7 +74,8 @@ def learn_embeddings(walks):
 	Learn embeddings by optimizing the Skipgram objective using SGD.
 	'''
 	#walks = list([map(str, walk) for walk in walks])
-	model = Word2Vec(walks, size=args.dimensions, window=args.window_size, min_count=0, sg=1, workers=args.workers, iter=args.iter)
+	epoch_logger = EpochLogger()
+	model = Word2Vec(walks, size=args.dimensions, window=args.window_size, min_count=0, sg=1, workers=args.workers, iter=args.iter, callbacks=[epoch_logger])
 	model.wv.save_word2vec_format(args.output)
 	
 	return
@@ -143,3 +158,4 @@ def main(args):
 if __name__ == "__main__":
 	args = parse_args()
 	main(args)
+
