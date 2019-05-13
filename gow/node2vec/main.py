@@ -138,6 +138,27 @@ def create_graphs_of_words(docs, window_size):
 
     return G
 
+def create_graphs_of_words_dict(docs, window_size, words_dict):
+    G = nx.Graph()
+    max_docs = len(docs)
+    doc_count = 0
+    for doc in docs:
+        doc_count = doc_count + 1
+        if len(doc) == 0: continue
+        for i in range(len(doc)):
+            if words_dict[doc[i]] not in G.nodes():
+                G.add_node(words_dict[doc[i]])
+            for j in range(i+1, i+window_size):
+                if j < len(doc):
+                    if G.has_edge(words_dict[doc[i]], words_dict[doc[j]]): 
+                        G[words_dict[doc[i]]][words_dict[doc[j]]]['weight'] = G[words_dict[doc[i]]][words_dict[doc[j]]]['weight'] + 1
+                    else: 
+                        G.add_edge(words_dict[doc[i]], words_dict[doc[j]], weight = 1)
+
+        print(str(doc_count) + ' of ' + str(max_docs))
+
+    return G
+
 def main(args):
 	'''
 	Pipeline for representational learning for all nodes in a graph.
@@ -149,6 +170,8 @@ def main(args):
 	print("Vocabulary size: ", len(words_dict))
 
 	nx_G = create_graphs_of_words(docs, args.window_size)
+	nx_G = nx.convert_node_labels_to_integers(nx_G)
+	#nx_G = create_graphs_of_words_dict(docs, args.window_size, words_dict)
 
 	G = node2vec.Graph(nx_G, False, args.p, args.q)
 
