@@ -151,8 +151,13 @@ def main(args):
 	nx_G = create_graphs_of_words(docs, args.window_size)
 
 	G = node2vec.Graph(nx_G, False, args.p, args.q)
+
+	print('Preprocessing transition probabilities...')
 	G.preprocess_transition_probs()
+
+	print('Simulating walks...')
 	walks = G.simulate_walks(args.num_walks, args.walk_length)
+
 	learn_embeddings(walks)
 
 if __name__ == "__main__":
