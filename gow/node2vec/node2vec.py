@@ -82,23 +82,27 @@ class Graph():
 
 		alias_nodes = {}
 		count_nodes = 0
-		print('Preprocessing of transition probabilities for guiding the random walks.')
 		for node in G.nodes():
 			count_nodes = count_nodes + 1
 			print(str(count_nodes) + ' of ' + str(G.number_of_nodes()))
+
 			unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
 			norm_const = sum(unnormalized_probs)
 			normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
 			alias_nodes[node] = alias_setup(normalized_probs)
 
 		alias_edges = {}
-		triads = {}
+		count_edges = 0
+		#triads = {}
 
 		if is_directed:
 			for edge in G.edges():
 				alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
 		else:
 			for edge in G.edges():
+				count_edges = count_edges + 1
+				print(str(count_edges) + ' of ' + str(G.number_of_edges()))
+
 				alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
 				alias_edges[(edge[1], edge[0])] = self.get_alias_edge(edge[1], edge[0])
 
