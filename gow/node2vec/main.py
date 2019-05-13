@@ -170,7 +170,7 @@ def main(args):
 	print("Vocabulary size: ", len(words_dict))
 
 	nx_G = create_graphs_of_words(docs, args.window_size)
-	nx_G = nx.convert_node_labels_to_integers(nx_G)
+	nx_G = nx.convert_node_labels_to_integers(nx_G, label_attribute='old_label')
 	#nx_G = create_graphs_of_words_dict(docs, args.window_size, words_dict)
 
 	G = node2vec.Graph(nx_G, False, args.p, args.q)
@@ -180,6 +180,10 @@ def main(args):
 
 	print('Simulating walks...')
 	walks = G.simulate_walks(args.num_walks, args.walk_length)
+
+	for i, walk in enumerate(walks):
+		for j, word_id in enumerate(walk):
+			walks[i][j] = nx_G.nodes[walk[j]]['old_label']
 
 	learn_embeddings(walks)
 
