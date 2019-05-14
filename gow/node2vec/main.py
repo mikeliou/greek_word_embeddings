@@ -15,8 +15,10 @@ import networkx as nx
 import node2vec
 import string
 import time
+import json
 import re
 from tqdm import tqdm
+from operator import itemgetter
 from nltk.corpus import stopwords
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
@@ -101,12 +103,19 @@ def clean_str(s):
 
 def preprocessing(docs):
 	preprocessed_docs = []
-	gr_stops = set(stopwords.words('greek'))
-    
+	gr_stops = list(stopwords.words('greek'))
+	gr_stops_ext = ['της', 'τη', 'τους']
+	for word_ext in gr_stops_ext:
+		if word_ext not in gr_stops:
+			gr_stops.append(word_ext)
+
 	for doc in docs:
 		cl_str = clean_str(doc)
-		if cl_str not in gr_stops:
-			preprocessed_docs.append(cl_str)
+		#for cl_word in cl_str:
+		#	if cl_word in gr_stops:
+		#		cl_str.remove(cl_word)
+		cl_str = [word for word in cl_str if word not in gr_stops]
+		preprocessed_docs.append(cl_str)
 
 	return preprocessed_docs
 
@@ -174,6 +183,11 @@ def main(args):
 
 	words_dict = build_words_dict(docs)
 	print("Vocabulary size: ", len(words_dict))
+
+	with open('gr_vocab.txt', 'w') as f:
+		for k, v in sorted(words_dict.items(), key=itemgetter(0)):
+			f.write(str(k) + " " + str(v) + "\n")
+		f.close()
 
 	nx_G = create_graphs_of_words(docs, args.window_size)
 	nx_G = nx.convert_node_labels_to_integers(nx_G, label_attribute='old_label')
