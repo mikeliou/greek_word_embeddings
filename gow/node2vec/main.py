@@ -14,7 +14,10 @@ import numpy as np
 import networkx as nx
 import node2vec
 import string
+import time
 import re
+from tqdm import tqdm
+from nltk.corpus import stopwords
 from gensim.models import Word2Vec
 from gensim.models.callbacks import CallbackAny2Vec
 
@@ -55,8 +58,8 @@ def parse_args():
 	parser.add_argument('--window-size', type=int, default=10,
                     	help='Context size for optimization. Default is 10.')
 
-	parser.add_argument('--iter', default=1, type=int,
-                      help='Number of epochs in SGD')
+	parser.add_argument('--iter', type=int, default=1,
+                        help='Number of epochs in SGD')
 
 	parser.add_argument('--workers', type=int, default=8,
 	                    help='Number of parallel workers. Default is 8.')
@@ -97,12 +100,15 @@ def clean_str(s):
     return s.strip().split()
 
 def preprocessing(docs):
-    preprocessed_docs = []
+	preprocessed_docs = []
+	gr_stops = set(stopwords.words('greek'))
     
-    for doc in docs:
-        preprocessed_docs.append(clean_str(doc))
+	for doc in docs:
+		cl_str = clean_str(doc)
+		if cl_str not in gr_stops:
+			preprocessed_docs.append(cl_str)
 
-    return preprocessed_docs
+	return preprocessed_docs
 
 def build_words_dict(docs):
     words_dict = dict()
@@ -121,10 +127,10 @@ def create_graphs_of_words(docs, window_size):
     Create graphs of words
     """
     G = nx.Graph()
-    max_docs = len(docs)
-    doc_count = 0
-    for doc in docs:
-        doc_count = doc_count + 1
+    #max_docs = len(docs)
+    #doc_count = 0
+    for doc in tqdm(docs):
+        #doc_count = doc_count + 1
         if len(doc) == 0: continue
         for i in range(len(doc)):
             if doc[i] not in G.nodes():
@@ -134,7 +140,7 @@ def create_graphs_of_words(docs, window_size):
                     if G.has_edge(doc[i], doc[j]): G[doc[i]][doc[j]]['weight'] = G[doc[i]][doc[j]]['weight'] + 1
                     else: G.add_edge(doc[i], doc[j], weight = 1)
 
-        print(str(doc_count) + ' of ' + str(max_docs))
+        #print(str(doc_count) + ' of ' + str(max_docs))
 
     return G
 
@@ -185,6 +191,7 @@ def main(args):
 		for j, word_id in enumerate(walk):
 			walks[i][j] = nx_G.nodes[walk[j]]['old_label']
 
+	print('Learning embeddings...')
 	learn_embeddings(walks)
 
 if __name__ == "__main__":

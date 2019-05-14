@@ -1,6 +1,8 @@
 import numpy as np
 import networkx as nx
 import random
+import time
+from tqdm import tqdm
 
 
 class Graph():
@@ -43,9 +45,9 @@ class Graph():
 		G = self.G
 		walks = []
 		nodes = list(G.nodes())
-		print ('Walk iteration:')
-		for walk_iter in range(num_walks):
-			print (str(walk_iter+1), '/', str(num_walks))
+		#print ('Walk iteration:')
+		for walk_iter in tqdm(range(num_walks)):
+			#print (str(walk_iter+1), '/', str(num_walks))
 			random.shuffle(nodes)
 			for node in nodes:
 				walks.append(self.node2vec_walk(walk_length=walk_length, start_node=node))
@@ -82,9 +84,9 @@ class Graph():
 
 		alias_nodes = {}
 		count_nodes = 0
-		for node in G.nodes():
+		for node in tqdm(G.nodes()):
 			count_nodes = count_nodes + 1
-			print(str(count_nodes) + ' of ' + str(G.number_of_nodes()))
+			#print(str(count_nodes) + ' of ' + str(G.number_of_nodes()))
 
 			unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
 			norm_const = sum(unnormalized_probs)
@@ -99,9 +101,9 @@ class Graph():
 			for edge in G.edges():
 				alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
 		else:
-			for edge in G.edges():
+			for edge in tqdm(G.edges()):
 				count_edges = count_edges + 1
-				print(str(count_edges) + ' of ' + str(G.number_of_edges()))
+				#print(str(count_edges) + ' of ' + str(G.number_of_edges()))
 
 				alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
 				alias_edges[(edge[1], edge[0])] = self.get_alias_edge(edge[1], edge[0])
