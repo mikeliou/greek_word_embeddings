@@ -83,9 +83,9 @@ class Graph():
 		is_directed = self.is_directed
 
 		alias_nodes = {}
-		count_nodes = 0
+		#count_nodes = 0
 		for node in tqdm(G.nodes()):
-			count_nodes = count_nodes + 1
+			#count_nodes = count_nodes + 1
 			#print(str(count_nodes) + ' of ' + str(G.number_of_nodes()))
 
 			unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
@@ -94,7 +94,7 @@ class Graph():
 			alias_nodes[node] = alias_setup(normalized_probs)
 
 		alias_edges = {}
-		count_edges = 0
+		#count_edges = 0
 		#triads = {}
 
 		if is_directed:
@@ -102,7 +102,7 @@ class Graph():
 				alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
 		else:
 			for edge in tqdm(G.edges()):
-				count_edges = count_edges + 1
+				#count_edges = count_edges + 1
 				#print(str(count_edges) + ' of ' + str(G.number_of_edges()))
 
 				alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])

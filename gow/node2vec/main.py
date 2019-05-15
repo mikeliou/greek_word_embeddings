@@ -72,6 +72,9 @@ def parse_args():
 	parser.add_argument('--q', type=float, default=1,
 	                    help='Inout hyperparameter. Default is 1.')
 
+	parser.add_argument('--min-count', type=int, default=2,
+	                    help='Minimum count of weight for removing node. Default is 2.')
+
 	return parser.parse_args()
 
 def learn_embeddings(walks):
@@ -190,6 +193,14 @@ def main(args):
 		f.close()
 
 	nx_G = create_graphs_of_words(docs, args.window_size)
+
+	#remove = [node for node,degree in nx_G.items() if degree > 2]
+	remove_edges = []
+	for e in nx_G.edges():
+		if nx_G.edges[e]['weight'] < args.min_count:
+			remove_edges.append(e)
+	
+	nx_G.remove_edges_from(remove_edges)
 	nx_G = nx.convert_node_labels_to_integers(nx_G, label_attribute='old_label')
 	#nx_G = create_graphs_of_words_dict(docs, args.window_size, words_dict)
 
