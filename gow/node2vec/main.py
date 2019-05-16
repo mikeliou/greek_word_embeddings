@@ -201,6 +201,7 @@ def main(args):
 			remove_edges.append(e)
 	
 	nx_G.remove_edges_from(remove_edges)
+	nx_G.remove_nodes_from(list(nx.isolates(nx_G)))
 	nx_G = nx.convert_node_labels_to_integers(nx_G, label_attribute='old_label')
 	#nx_G = create_graphs_of_words_dict(docs, args.window_size, words_dict)
 
