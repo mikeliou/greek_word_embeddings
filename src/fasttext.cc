@@ -456,10 +456,9 @@ void FastText::cbos(
       }
     }
 
-    std::uniform_int_distribution<> distr(1, boundaryWords.size() - w);
-    int32_t randNum = distr(model.rng);
-    //if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
-    if (boundaryWords.size() > 1)
+    //std::uniform_int_distribution<> distr(1, args_->ws);
+    int32_t randNum = uniform(model.rng);
+    if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
     {
       const std::vector<int32_t>& ngramsRandNum = dict_->getSubwords(line[w + randNum]);
       for(int32_t i = 0; i < ngramsRandNum.size(); i++)
