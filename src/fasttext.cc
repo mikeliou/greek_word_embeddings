@@ -456,7 +456,7 @@ void FastText::cbos(
       }
     }
 
-    std::uniform_int_distribution<> distr(1, boundaryWords.size());
+    std::uniform_int_distribution<> distr(1, boundaryWords.size() - w);
     int32_t randNum = distr(model.rng);
     //if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
     if (boundaryWords.size() > 1)
