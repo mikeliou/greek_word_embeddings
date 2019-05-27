@@ -456,10 +456,17 @@ void FastText::cbos(
       }
     }
 
-    //std::uniform_int_distribution<> distr(1, args_->ws);
-    int32_t randNum = uniform(model.rng);
-    if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
+    std::uniform_int_distribution<> distr(0, boundaryWords.size() - 1);
+    int32_t randNum = distr(model.rng);
+    //if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
+    if (boundaryWords.size() > 1)
+    {
+      const std::vector<int32_t>& ngramsRandNum = dict_->getSubwords(line[w + randNum]);
+      for(int32_t i = 0; i < ngramsRandNum.size(); i++)
+        bos.erase(std::remove(bos.begin(), bos.end(), ngramsRandNum[i]), bos.end());
+
       model.update(bos, line, w + randNum, lr);
+    }
   }
 }
 
