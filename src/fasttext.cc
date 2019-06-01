@@ -456,9 +456,31 @@ void FastText::cbos(
       }
     }
 
-    //std::uniform_int_distribution<> distr(1, args_->ws);
-    //int32_t randNum = uniform(model.rng);
-    model.update(bos, line, w, lr);
+    std::vector<int32_t> bosNegative;
+    std::vector<int32_t> bosPositive;
+    std::uniform_int_distribution<> uniformCbosNegative(-boundary, 0);
+    std::uniform_int_distribution<> uniformCbosPositive(0, boundary);
+    int32_t boundaryCbosNegative = uniformCbosNegative(model.rng);
+    int32_t boundaryCbosPositive = uniformCbosPositive(model.rng);
+
+    for (int32_t q = -boundaryCbosNegative; q <= boundaryCbosNegative; q++) {
+      if (q != 0 && w + q >= 0 && w + q < line.size()) {
+        const std::vector<int32_t>& ngramsCbosNegative = dict_->getSubwords(line[w + q]);
+        bosNegative.insert(bosNegative.end(), ngramsCbosNegative.cbegin(), ngramsCbosNegative.cend());
+        
+      }
+    }
+
+    for (int32_t a = -boundaryCbosPositive; a <= boundaryCbosPositive; a++) {
+      if (a != 0 && w + a >= 0 && w + a < line.size()) {
+        const std::vector<int32_t>& ngramsCbosPositive = dict_->getSubwords(line[w + a]);
+        bosPositive.insert(bosPositive.end(), ngramsCbosPositive.cbegin(), ngramsCbosPositive.cend());
+        
+      }
+    }
+
+    model.update(bosNegative, line, w, lr);
+    model.update(bosPositive, line, w, lr);
   }
 }
 
