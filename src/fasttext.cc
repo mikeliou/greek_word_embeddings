@@ -479,8 +479,13 @@ void FastText::cbos(
       }
     }
 
-    model.update(bosNegative, line, w, lr);
-    model.update(bosPositive, line, w, lr);
+    int32_t randNumNeg = uniformCbosNegative(model.rng);
+    if (randNumNeg != 0 && w + randNumNeg >= 0 && w + randNumNeg < line.size())
+      model.update(bosNegative, line, w + randNumNeg, lr);
+
+    int32_t randNumPos = uniformCbosPositive(model.rng);
+    if (randNumPos != 0 && w + randNumPos >= 0 && w + randNumPos < line.size())
+      model.update(bosPositive, line, w + randNumPos, lr);
   }
 }
 
