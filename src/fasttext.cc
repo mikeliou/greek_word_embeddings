@@ -456,6 +456,10 @@ void FastText::cbos(
       }
     }
 
+    int32_t randNum = uniform(model.rng);
+    if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
+      model.update(bos, line, w + randNum, lr);
+
     std::vector<int32_t> bosNegative;
     std::vector<int32_t> bosPositive;
     std::uniform_int_distribution<> uniformCbosNegative(-boundary, -1);
@@ -498,8 +502,6 @@ void FastText::cbos(
     int32_t randNumPos = uniformCbosPositive(model.rng);
     if (randNumPos != 0 && w + randNumPos >= 0 && w + randNumPos < line.size())
       model.update(bosPositive, line, w + randNumPos, lr);
-
-    model.update(bos, line, w, lr);
   }
 }
 
