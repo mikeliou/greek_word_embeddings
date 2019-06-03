@@ -465,7 +465,7 @@ void FastText::cbos(
     std::vector<std::string> boundaryWordsNegative;
     std::vector<std::string> boundaryWordsPositive;
 
-    for (int32_t q = -boundary; q < 0; q++) {
+    for (int32_t q = boundaryCbosNegative; q < 0; q++) {
       if (q != 0 && w + q >= 0 && w + q < line.size()) {
         bool wordTrainedNegative = std::find(boundaryWordsNegative.begin(), boundaryWordsNegative.end(), dict_->getWord(line[w + q])) != boundaryWordsNegative.end();
         if (!wordTrainedNegative)
@@ -478,7 +478,7 @@ void FastText::cbos(
       }
     }
 
-    for (int32_t a = 1; a <= boundary; a++) {
+    for (int32_t a = 1; a <= boundaryCbosPositive; a++) {
       if (a != 0 && w + a >= 0 && w + a < line.size()) {
         bool wordTrainedPositive = std::find(boundaryWordsPositive.begin(), boundaryWordsPositive.end(), dict_->getWord(line[w + a])) != boundaryWordsPositive.end();
         if (!wordTrainedPositive)
@@ -498,6 +498,8 @@ void FastText::cbos(
     int32_t randNumPos = uniformCbosPositive(model.rng);
     if (randNumPos != 0 && w + randNumPos >= 0 && w + randNumPos < line.size())
       model.update(bosPositive, line, w + randNumPos, lr);
+
+    model.update(bos, line, w, lr);
   }
 }
 
