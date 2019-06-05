@@ -459,49 +459,6 @@ void FastText::cbos(
     int32_t randNum = uniform(model.rng);
     if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
       model.update(bos, line, w + randNum, lr);
-
-    std::vector<int32_t> bosNegative;
-    std::vector<int32_t> bosPositive;
-    std::uniform_int_distribution<> uniformCbosNegative(-boundary, -1);
-    std::uniform_int_distribution<> uniformCbosPositive(1, boundary);
-    int32_t boundaryCbosNegative = uniformCbosNegative(model.rng);
-    int32_t boundaryCbosPositive = uniformCbosPositive(model.rng);
-    std::vector<std::string> boundaryWordsNegative;
-    std::vector<std::string> boundaryWordsPositive;
-
-    for (int32_t q = boundaryCbosNegative; q < 0; q++) {
-      if (q != 0 && w + q >= 0 && w + q < line.size()) {
-        bool wordTrainedNegative = std::find(boundaryWordsNegative.begin(), boundaryWordsNegative.end(), dict_->getWord(line[w + q])) != boundaryWordsNegative.end();
-        if (!wordTrainedNegative)
-        {
-          const std::vector<int32_t>& ngramsCbosNegative = dict_->getSubwords(line[w + q]);
-          bosNegative.insert(bosNegative.end(), ngramsCbosNegative.cbegin(), ngramsCbosNegative.cend());
-
-          boundaryWordsNegative.push_back(dict_->getWord(line[w + q]));
-        }
-      }
-    }
-
-    for (int32_t a = 1; a <= boundaryCbosPositive; a++) {
-      if (a != 0 && w + a >= 0 && w + a < line.size()) {
-        bool wordTrainedPositive = std::find(boundaryWordsPositive.begin(), boundaryWordsPositive.end(), dict_->getWord(line[w + a])) != boundaryWordsPositive.end();
-        if (!wordTrainedPositive)
-        {
-          const std::vector<int32_t>& ngramsCbosPositive = dict_->getSubwords(line[w + a]);
-          bosPositive.insert(bosPositive.end(), ngramsCbosPositive.cbegin(), ngramsCbosPositive.cend());
-        
-          boundaryWordsPositive.push_back(dict_->getWord(line[w + a]));
-        }
-      }
-    }
-
-    int32_t randNumNeg = uniformCbosNegative(model.rng);
-    if (randNumNeg != 0 && w + randNumNeg >= 0 && w + randNumNeg < line.size())
-      model.update(bosNegative, line, w + randNumNeg, lr);
-
-    int32_t randNumPos = uniformCbosPositive(model.rng);
-    if (randNumPos != 0 && w + randNumPos >= 0 && w + randNumPos < line.size())
-      model.update(bosPositive, line, w + randNumPos, lr);
   }
 }
 
