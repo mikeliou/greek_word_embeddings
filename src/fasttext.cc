@@ -164,7 +164,7 @@ void FastText::saveModel() {
 }
 
 void FastText::saveModel(const std::string& filename) {
-  std::ofstream ofs(filename, std::ofstream::binary);
+  /*std::ofstream ofs(filename, std::ofstream::binary);
   if (!ofs.is_open()) {
     throw std::invalid_argument(filename + " cannot be opened for saving!");
   }
@@ -186,7 +186,7 @@ void FastText::saveModel(const std::string& filename) {
     output_->save(ofs);
   }
 
-  ofs.close();
+  ofs.close();*/
 }
 
 void FastText::loadModel(const std::string& filename) {
