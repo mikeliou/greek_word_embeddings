@@ -360,16 +360,10 @@ void FastText::cbow(Model& model, real lr, const std::vector<int32_t>& line) {
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     bow.clear();
-    weightvector.clear();
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w + c]);
         bow.insert(bow.end(), ngrams.cbegin(), ngrams.cend());
-        
-        double weight = 1 / (1 + exp(-2 * (args_->ws - abs(c))));
-        for (int32_t wv = 0; wv < ngrams.size(); wv++) {
-          weightvector.push_back(weight);
-        }
       }
     }
     
@@ -432,76 +426,25 @@ void FastText::cbos(
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
   std::vector<int32_t> bos;
-  std::vector<std::string> boundaryWords;
 
   for (int32_t w = 0; w < line.size(); w++) {
     int32_t boundary = uniform(model.rng);
     bos.clear();
-    boundaryWords.clear();
 
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    boundaryWords.push_back(dict_->getWord(line[w]));
 
     for (int32_t c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
-        bool wordTrained = std::find(boundaryWords.begin(), boundaryWords.end(), dict_->getWord(line[w + c])) != boundaryWords.end();
-        if (!wordTrained)
-        {
           const std::vector<int32_t>& ngramsBos = dict_->getSubwords(line[w + c]);
           bos.insert(bos.end(), ngramsBos.cbegin(), ngramsBos.cend());
 
           model.update(ngrams, line, w + c, lr);
-          boundaryWords.push_back(dict_->getWord(line[w + c]));
-        }
       }
     }
 
     int32_t randNum = uniform(model.rng);
     if (randNum != 0 && w + randNum >= 0 && w + randNum < line.size())
       model.update(bos, line, w + randNum, lr);
-
-    std::vector<int32_t> bosNegative;
-    std::vector<int32_t> bosPositive;
-    std::uniform_int_distribution<> uniformCbosNegative(-boundary, -1);
-    std::uniform_int_distribution<> uniformCbosPositive(1, boundary);
-    int32_t boundaryCbosNegative = uniformCbosNegative(model.rng);
-    int32_t boundaryCbosPositive = uniformCbosPositive(model.rng);
-    std::vector<std::string> boundaryWordsNegative;
-    std::vector<std::string> boundaryWordsPositive;
-
-    for (int32_t q = boundaryCbosNegative; q < 0; q++) {
-      if (q != 0 && w + q >= 0 && w + q < line.size()) {
-        bool wordTrainedNegative = std::find(boundaryWordsNegative.begin(), boundaryWordsNegative.end(), dict_->getWord(line[w + q])) != boundaryWordsNegative.end();
-        if (!wordTrainedNegative)
-        {
-          const std::vector<int32_t>& ngramsCbosNegative = dict_->getSubwords(line[w + q]);
-          bosNegative.insert(bosNegative.end(), ngramsCbosNegative.cbegin(), ngramsCbosNegative.cend());
-
-          boundaryWordsNegative.push_back(dict_->getWord(line[w + q]));
-        }
-      }
-    }
-
-    for (int32_t a = 1; a <= boundaryCbosPositive; a++) {
-      if (a != 0 && w + a >= 0 && w + a < line.size()) {
-        bool wordTrainedPositive = std::find(boundaryWordsPositive.begin(), boundaryWordsPositive.end(), dict_->getWord(line[w + a])) != boundaryWordsPositive.end();
-        if (!wordTrainedPositive)
-        {
-          const std::vector<int32_t>& ngramsCbosPositive = dict_->getSubwords(line[w + a]);
-          bosPositive.insert(bosPositive.end(), ngramsCbosPositive.cbegin(), ngramsCbosPositive.cend());
-        
-          boundaryWordsPositive.push_back(dict_->getWord(line[w + a]));
-        }
-      }
-    }
-
-    int32_t randNumNeg = uniformCbosNegative(model.rng);
-    if (randNumNeg != 0 && w + randNumNeg >= 0 && w + randNumNeg < line.size())
-      model.update(bosNegative, line, w + randNumNeg, lr);
-
-    int32_t randNumPos = uniformCbosPositive(model.rng);
-    if (randNumPos != 0 && w + randNumPos >= 0 && w + randNumPos < line.size())
-      model.update(bosPositive, line, w + randNumPos, lr);
   }
 }
 
