@@ -1,1 +1,1 @@
-# greek_word_embeddings
+# greek_word_embeddings - CBOS method
